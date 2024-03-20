@@ -1,0 +1,3 @@
+[submodule "prk_firmware"]
+	path = prk_firmware
+	url = git@github.com:hayaokimura/prk_firmware.git
