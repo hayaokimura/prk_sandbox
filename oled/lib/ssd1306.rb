@@ -1,5 +1,15 @@
-# ssd1306.rb
 require "i2c"
+
+FONTS = "\x00\x3E\x51\x49\x45\x3E" + # 0
+        "\x00\x00\x42\x7F\x40\x00" + # 1
+        "\x00\x42\x61\x51\x49\x46" + # 2
+        "\x00\x21\x41\x45\x4B\x31" + # 3
+        "\x00\x18\x14\x12\x7F\x10" + # 4
+        "\x00\x27\x45\x45\x45\x39" + # 5
+        "\x00\x3C\x4A\x49\x49\x30" + # 6
+        "\x00\x01\x71\x09\x05\x03" + # 7
+        "\x00\x36\x49\x49\x49\x36" + # 8
+        "\x00\x06\x49\x49\x29\x1E"   # 9
 
 class SSD1306
   def initialize(unit_name:, freq:, sda:, scl:)
@@ -26,14 +36,16 @@ class SSD1306
 
   def all_clear()
     i=0
-    while i&amp;amp;amp;amp;amp;amp;lt;8 do
-      @i2c.write(0x3C, [0b10000000,
-      0xB0 | i])
+    while i<8 do
+      # 描画ページ指定
+      @i2c.write(0x3C, [0b10000000, 0xB0 | i])
 
       j=0
-      while j&amp;amp;amp;amp;amp;amp;lt;128 do
+      while j<128 do
+        # column address の指定
         @i2c.write(0x3C, [0x00, 0x21, 0x00 | j, 0x00 | j+1])
-        @i2c.write(0x3C, [0b01000000, 0x55])
+        # データ指定
+        @i2c.write(0x3C, [0x40, 0x00])
         j=j+1
       end
       i=i+1
@@ -42,32 +54,31 @@ class SSD1306
 
   def all_white()
     i=0
-    while i&amp;amp;amp;amp;amp;amp;lt;8 do
-      @i2c.write(0x3C, [0b10000000,
-      0xB0 | i])
+    while i<8 do
+      @i2c.write(0x3C, [0b10000000, 0xB0 | i])
 
       j=0
-      while j&amp;amp;amp;amp;amp;amp;lt;128 do
+      while j<128 do
+        # column address の指定
         @i2c.write(0x3C, [0x00, 0x21, 0x00 | j, 0x00 | j+1])
-        @i2c.write(0x3C, [0b01000000, 0xFF])
+        # データ指定
+        @i2c.write(0x3C, [0x40, 0xFF])
         j=j+1
       end
       i=i+1
     end
   end
 
-  def draw_all(pic:)
-    k=0
-    while k&amp;amp;amp;amp;amp;amp;lt;128*8 do
-      i = k / 128
-      j = k-i*128
+  def draw_specific_page_line(page:, line:, data:)
+    @i2c.write(0x3C, [0b10000000, 0xB0 | page])
+    @i2c.write(0x3C, [0x00, 0x21, 0x00 | line, 0x00 | line+1])
+    @i2c.write(0x3C, [0x40, data])
+  end
 
-      @i2c.write(0x3C, [0b10000000,
-      0xB0 | i])
-
-      @i2c.write(0x3C, [0x00, 0x21, 0x00 | j, 0x00 | j+1])
-      @i2c.write(0x3C, [0b01000000, pic[k].bytes[0]])
-      k=k+1
+  def draw_num(num, page:, col:)
+    font = FONTS[num * 6, 6]
+    font.bytes.each_with_index do |data, i|
+      draw_specific_page_line(page: page, line: col * 6 + i, data: data)
     end
   end
 end
