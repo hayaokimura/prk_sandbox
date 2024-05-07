@@ -13,41 +13,29 @@ class AHT25
     end
   end
 
-  def trigger
+  def read_data
     sleep 0.01
     @i2c.write(ADDRESS, [0xAC, 0x33, 0x00])
-  end
-
-  def read_data
     sleep 0.08
     @data = @i2c.read(ADDRESS, 0x07).bytes
   end
 
-  # Calculate temperature
-  #   return: 100x degrees Celsius
   def calc_temp
     temp_raw = ((@data[3] & 0x0F) << 16) | (@data[4] << 8) | @data[5]
-    return ((temp_raw * 625) >> 15) - 5000
+    return ((temp_raw * 200) >> 20) - 50
   end
 
-  # Calculate humidity
-  #   return: 1000x %rH
   def calc_hum
-    hum_raw = (@data[1] << 12) | (@data[2] << 4) | ((@data[3] & 0x0F) >> 4)
-    return ((hum_raw * 625) >> 15) * 5
+    hum_raw = (@data[1] << 12) | (@data[2] << 4) | ((@data[3] & 0xF0) >> 4)
+    return ((hum_raw * 100) >> 20)
   end
-end
-
-def adj_digit(num, digit)
-  s = num.to_s
-  s[-digit,0] = '.'
-  return s
 end
 
 aht25 = AHT25.new(unit_name: :RP2040_I2C1, freq: 100 * 1000, sda: 6, scl: 7)
+
 loop do
-  aht25.trigger
   aht25.read_data
-  puts("temp: #{adj_digit(aht25.calc_temp, 2)} C")
-  puts("hum: #{adj_digit(aht25.calc_hum, 3)} %")
+  puts("temp: #{aht25.calc_temp.to_s} C")
+  puts("hum: #{aht25.calc_hum.to_s} %")
+  sleep 1
 end
