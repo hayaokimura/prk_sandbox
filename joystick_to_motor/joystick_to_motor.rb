@@ -17,9 +17,9 @@ class JoyStick
     if voltage <= NEUTRAL_VOLTAGE + NEUTRAL_THRESHOLD && voltage > NEUTRAL_VOLTAGE - NEUTRAL_THRESHOLD
       0
     elsif voltage > NEUTRAL_VOLTAGE + NEUTRAL_THRESHOLD
-      (voltage - NEUTRAL_VOLTAGE)*2/MAX_VOLTAGE * 30 + 70 # rotate motor over 70%
+      (voltage - NEUTRAL_VOLTAGE)*2/MAX_VOLTAGE * 40 + 60
     else
-      (voltage - NEUTRAL_VOLTAGE)/NEUTRAL_VOLTAGE * 30 - 70 # rotate motor over 70%
+      (voltage - NEUTRAL_VOLTAGE)/NEUTRAL_VOLTAGE * 40 - 60
     end
   end
 end
