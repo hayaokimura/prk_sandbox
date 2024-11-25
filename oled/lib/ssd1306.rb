@@ -18,11 +18,12 @@ class SSD1306
     # initialize
     @i2c.write(0x3C, [0b10000000, 0x00])
     @i2c.write(0x3C, [0b00000000, 0xAE])
-    @i2c.write(0x3C, [0b00000000, 0xA8, 0x3F])
+    set_multiplex_ratio(0x1F)
     @i2c.write(0x3C, [0b10000000, 0x40])
     @i2c.write(0x3C, [0b10000000, 0xA1])
     @i2c.write(0x3C, [0b10000000, 0xC8])
-    @i2c.write(0x3C, [0b00000000, 0xDA, 0x12])
+    #@i2c.write(0x3C, [0b00000000, 0xDA, 0x12]) #configure for 128*64
+    @i2c.write(0x3C, [0b00000000, 0xDA, 0b00000010]) # configure for 125*32
     @i2c.write(0x3C, [0b00000000, 0x81, 0xFF])
     @i2c.write(0x3C, [0b10000000, 0xA4])
     @i2c.write(0x3C, [0b00000000, 0xA6])
@@ -80,5 +81,11 @@ class SSD1306
     font.bytes.each_with_index do |data, i|
       draw_specific_page_line(page: page, line: col * 6 + i, data: data)
     end
+  end
+
+  # 0x3F 63
+  # 0x1F 31
+  def set_multiplex_ratio(ratio)
+    @i2c.write(0x3C, [0b00000000, 0xA8, ratio])
   end
 end
